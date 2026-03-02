@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dynamic Email Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --text:#f1f5f9;
+    --accent:#22c55e;
+    --header:#38bdf8;
+    --heading:#facc15;
+}
+
+body.light{
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --text:#0f172a;
+    --header:#3b82f6;
+    --heading:#ef4444;
+}
+
+body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    transition:.3s;
+}
+
+header{
+    text-align:center;
+    padding:25px 10px;
+    background:rgba(0,0,0,.2);
+}
+
+header h1{
+    margin:0;
+    color:var(--header);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+header p{
+    font-size:1rem;
+    opacity:0.8;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+textarea, input{
+    width:100%;
+    border-radius:8px;
+    border:none;
+    padding:10px;
+    margin-bottom:15px;
+    font-size:1rem;
+    font-family: monospace;
+    color: var(--text);
+    background: var(--card);
+}
+
+textarea::placeholder, input::placeholder{
+    color: #999;
+    font-style: italic;
+}
+
+button{
+    cursor:pointer;
+    padding:10px 16px;
+    border:none;
+    border-radius:12px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color:#fff;
+    font-weight:bold;
+    font-size:1rem;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+    transition: all 0.25s ease;
+}
+
+button:hover{
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-top:20px;
+}
+
+.card{
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+    position:relative;
+    transition:.25s ease;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+}
+
+.card button{
+    width:100%;
+    margin-top:10px;
+    padding:10px;
+    font-weight:bold;
+    font-size:1rem;
+}
+
+.tick{
+    position:absolute;
+    top:8px;
+    right:10px;
+    font-size:22px;
+    cursor:pointer;
+    user-select:none;
+}
+
+.card.ticked{
+    opacity:0.5;
+    filter:grayscale(40%);
+}
+
+.stats{
+    text-align:center;
+    margin:10px 0;
+    opacity:.9;
+}
+
+.reset-btn{
+    background:#ef4444;
+    margin-top:5px;
+    padding:8px 14px;
+    font-weight:bold;
+}
+
+h3{
+    color:var(--heading);
+    margin-bottom:8px;
+}
+
+/* Progress bar */
+.progress-wrap{
+    max-width:600px;
+    margin:15px auto;
+    background:rgba(255,255,255,.08);
+    border-radius:999px;
+    height:12px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,#22c55e,#38bdf8);
+    width:0%;
+    transition:.4s;
+}
+
+.watermark{
+    position:fixed; 
+    bottom:10px; 
+    right:12px; 
+    font-weight:bold; 
+    font-size:24px; 
+    pointer-events:none;
+    text-shadow: 0 0 4px rgba(255,255,255,0.5);
+    opacity:0.8;
+    background: linear-gradient(45deg, #ccc, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition:.3s;
+}
+
+body.light .watermark{
+    background: linear-gradient(45deg, #333, #000, #333);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Dynamic Email Hub</h1>
+<p>Enter emails, university names, subject, and body template</p>
+</header>
+
+<div class="container">
+
+<div id="setup">
+<h3>Step 1: Enter Email List (one per line)</h3>
+<textarea id="emailList" rows="6" placeholder="Example:
+uaoffice@princeton.edu
+ugrad-ask@columbia.edu
+engage@admissions.cornell.edu"></textarea>
+
+<h3>Step 2: Enter University Names (one per line, same order)</h3>
+<textarea id="uniList" rows="6" placeholder="Example:
+Princeton University
+Columbia University
+Cornell University"></textarea>
+
+<h3>Step 3: Enter Email Subject</h3>
+<input type="text" id="emailSubject" placeholder="Example: Inquiry about International Student Admission">
+
+<h3>Step 4: Enter Email Body Template</h3>
+<textarea id="emailBodyTemplate" rows="8" placeholder="Use [University Name] where the university name should appear"></textarea>
+
+<button onclick="generateHub()">Generate Email Hub</button>
+</div>
+
+<div id="hub" style="display:none;">
+<div class="stats">
+Emails sent: <strong id="counter">0</strong><br>
+<button class="reset-btn" onclick="resetStats()">Reset Stats</button>
+</div>
+
+<div class="progress-wrap">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+</div>
+
+<div class="watermark">YahyaAutomation</div>
+
+<script>
+// ================= STATE =================
+let ticked = [];
+let counter = 0;
+let emails = [];
+let unis = [];
+let subject = '';
+let bodyTemplate = '';
+
+// ================= GENERATE HUB =================
+function generateHub(){
+    const emailText = document.getElementById('emailList').value.trim();
+    const uniText = document.getElementById('uniList').value.trim();
+
+    emails = emailText.split("\n").map(e=>e.trim()).filter(e=>e && !e.startsWith("Example:"));
+    unis = uniText.split("\n").map(u=>u.trim()).filter(u=>u && !u.startsWith("Example:"));
+
+    subject = document.getElementById('emailSubject').value.trim();
+    bodyTemplate = document.getElementById('emailBodyTemplate').value.trim();
+
+    if(!emails.length || !unis.length || !subject || !bodyTemplate){
+        alert("Please fill all fields!");
+        return;
+    }
+    if(emails.length!==unis.length){
+        alert("Number of emails and universities must match!");
+        return;
+    }
+
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('hub').style.display = 'block';
+
+    renderHub();
+}
+
+// ================= EMAIL BODY =================
+function emailBody(university){
+    return bodyTemplate.replace(/\[University Name\]/g, university);
+}
+
+// ================= SEND EMAIL =================
+function sendEmail(email, university){
+    if(!ticked.includes(university)){
+        ticked.push(university);
+        counter++;
+        document.getElementById("counter").textContent=counter;
+        updateProgress();
+    }
+    const body = encodeURIComponent(emailBody(university));
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    renderHub();
+}
+
+// ================= TOGGLE TICK =================
+function toggleTick(name){
+    if(ticked.includes(name)){
+        ticked = ticked.filter(u=>u!==name);
+        counter--;
+    }else{
+        ticked.push(name);
+        counter++;
+    }
+    document.getElementById("counter").textContent = counter;
+    updateProgress();
+    renderHub();
+}
+
+// ================= RESET =================
+function resetStats(){
+    ticked = [];
+    counter = 0;
+    document.getElementById("counter").textContent = 0;
+    updateProgress();
+    renderHub();
+}
+
+// ================= UPDATE PROGRESS =================
+function updateProgress(){
+    const percent = emails.length ? Math.round((ticked.length / emails.length) * 100) : 0;
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+
+// ================= RENDER HUB =================
+function renderHub(){
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    emails.forEach((email, idx)=>{
+        const university = unis[idx];
+        const isTicked = ticked.includes(university);
+        grid.innerHTML += `
+        <div class="card ${isTicked ? "ticked" : ""}">
+            <div class="tick" onclick="toggleTick('${university}')">
+            ${isTicked ? "✅" : "⬜"}
+            </div>
+            <strong>${university}</strong>
+            <div style="font-size:0.9em; opacity:0.8;">${email}</div>
+            <button onclick="sendEmail('${email}','${university}')">Email Now</button>
+        </div>`;
+    });
+    updateProgress();
+}
+</script>
+
+</body>
+</html>
