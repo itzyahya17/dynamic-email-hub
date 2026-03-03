@@ -66,8 +66,8 @@ textarea, input{
 }
 
 textarea::placeholder, input::placeholder{
-    color: #999;
-    font-style: italic;
+    color:#999;
+    font-style:italic;
 }
 
 button{
@@ -75,17 +75,17 @@ button{
     padding:10px 16px;
     border:none;
     border-radius:12px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg,#22c55e,#16a34a);
     color:#fff;
     font-weight:bold;
     font-size:1rem;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-    transition: all 0.25s ease;
+    box-shadow:0 6px 12px rgba(0,0,0,0.25);
+    transition:all 0.25s ease;
 }
 
 button:hover{
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+    transform:translateY(-2px) scale(1.03);
+    box-shadow:0 10px 18px rgba(0,0,0,0.35);
 }
 
 .grid{
@@ -111,9 +111,6 @@ button:hover{
 .card button{
     width:100%;
     margin-top:10px;
-    padding:10px;
-    font-weight:bold;
-    font-size:1rem;
 }
 
 .tick{
@@ -139,8 +136,6 @@ button:hover{
 .reset-btn{
     background:#ef4444;
     margin-top:5px;
-    padding:8px 14px;
-    font-weight:bold;
 }
 
 h3{
@@ -148,7 +143,6 @@ h3{
     margin-bottom:8px;
 }
 
-/* Progress bar */
 .progress-wrap{
     max-width:600px;
     margin:15px auto;
@@ -165,26 +159,10 @@ h3{
     transition:.4s;
 }
 
-.watermark{
-    position:fixed; 
-    bottom:10px; 
-    right:12px; 
-    font-weight:bold; 
-    font-size:24px; 
-    pointer-events:none;
-    text-shadow: 0 0 4px rgba(255,255,255,0.5);
-    opacity:0.8;
-    background: linear-gradient(45deg, #ccc, #fff, #ccc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition:.3s;
-}
-
-body.light .watermark{
-    background: linear-gradient(45deg, #333, #000, #333);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+.search-bar{
+    max-width:400px;
+    margin:10px auto 20px auto;
+    display:block;
 }
 </style>
 </head>
@@ -199,27 +177,26 @@ body.light .watermark{
 
 <div id="setup">
 <h3>Step 1: Enter Email List (one per line)</h3>
-<textarea id="emailList" rows="6" placeholder="Example:
-uaoffice@princeton.edu
-ugrad-ask@columbia.edu
-engage@admissions.cornell.edu"></textarea>
+<textarea id="emailList" rows="6"></textarea>
 
 <h3>Step 2: Enter University Names (one per line, same order)</h3>
-<textarea id="uniList" rows="6" placeholder="Example:
-Princeton University
-Columbia University
-Cornell University"></textarea>
+<textarea id="uniList" rows="6"></textarea>
 
 <h3>Step 3: Enter Email Subject</h3>
-<input type="text" id="emailSubject" placeholder="Example: Admission Guidance Request">
+<input type="text" id="emailSubject">
 
 <h3>Step 4: Enter Email Body Template</h3>
-<textarea id="emailBodyTemplate" rows="8" placeholder="Use [University Name] where the university name should appear"></textarea>
+<textarea id="emailBodyTemplate" rows="8"></textarea>
 
 <button onclick="generateHub()">Generate Email Hub</button>
 </div>
 
 <div id="hub" style="display:none;">
+
+<input type="text" id="searchInput" class="search-bar"
+placeholder="Search university..."
+oninput="filterUniversities()">
+
 <div class="stats">
 Emails sent: <strong id="counter">0</strong><br>
 <button class="reset-btn" onclick="resetStats()">Reset Stats</button>
@@ -232,10 +209,8 @@ Emails sent: <strong id="counter">0</strong><br>
 <div class="grid" id="grid"></div>
 </div>
 
-<div class="watermark">YahyaAutomation</div>
-
 <script>
-// ================= STATE =================
+
 let ticked = [];
 let counter = 0;
 let emails = [];
@@ -243,13 +218,12 @@ let unis = [];
 let subject = '';
 let bodyTemplate = '';
 
-// ================= GENERATE HUB =================
 function generateHub(){
     const emailText = document.getElementById('emailList').value.trim();
     const uniText = document.getElementById('uniList').value.trim();
 
-    emails = emailText.split("\n").map(e=>e.trim()).filter(e=>e && !e.startsWith("Example:"));
-    unis = uniText.split("\n").map(u=>u.trim()).filter(u=>u && !u.startsWith("Example:"));
+    emails = emailText.split("\n").map(e=>e.trim()).filter(e=>e);
+    unis = uniText.split("\n").map(u=>u.trim()).filter(u=>u);
 
     subject = document.getElementById('emailSubject').value.trim();
     bodyTemplate = document.getElementById('emailBodyTemplate').value.trim();
@@ -258,23 +232,22 @@ function generateHub(){
         alert("Please fill all fields!");
         return;
     }
+
     if(emails.length!==unis.length){
         alert("Number of emails and universities must match!");
         return;
     }
 
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('hub').style.display = 'block';
+    document.getElementById('setup').style.display='none';
+    document.getElementById('hub').style.display='block';
 
     renderHub();
 }
 
-// ================= EMAIL BODY =================
 function emailBody(university){
     return bodyTemplate.replace(/\[University Name\]/g, university);
 }
 
-// ================= SEND EMAIL =================
 function sendEmail(email, university){
     if(!ticked.includes(university)){
         ticked.push(university);
@@ -283,11 +256,10 @@ function sendEmail(email, university){
         updateProgress();
     }
     const body = encodeURIComponent(emailBody(university));
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
     renderHub();
 }
 
-// ================= TOGGLE TICK =================
 function toggleTick(name){
     if(ticked.includes(name)){
         ticked = ticked.filter(u=>u!==name);
@@ -296,34 +268,43 @@ function toggleTick(name){
         ticked.push(name);
         counter++;
     }
-    document.getElementById("counter").textContent = counter;
+    document.getElementById("counter").textContent=counter;
     updateProgress();
     renderHub();
 }
 
-// ================= RESET =================
 function resetStats(){
-    ticked = [];
-    counter = 0;
-    document.getElementById("counter").textContent = 0;
+    ticked=[];
+    counter=0;
+    document.getElementById("counter").textContent=0;
     updateProgress();
     renderHub();
 }
 
-// ================= UPDATE PROGRESS =================
 function updateProgress(){
     const percent = emails.length ? Math.round((ticked.length / emails.length) * 100) : 0;
     document.getElementById("progressBar").style.width = percent + "%";
 }
 
-// ================= RENDER HUB =================
+function filterUniversities(){
+    renderHub();
+}
+
 function renderHub(){
-    const grid = document.getElementById('grid');
-    grid.innerHTML = '';
-    emails.forEach((email, idx)=>{
-        const university = unis[idx];
-        const isTicked = ticked.includes(university);
-        grid.innerHTML += `
+    const grid=document.getElementById('grid');
+    const searchValue=document.getElementById("searchInput")?.value.toLowerCase()||"";
+    grid.innerHTML='';
+
+    emails.forEach((email,idx)=>{
+        const university=unis[idx];
+
+        if(searchValue && !university.toLowerCase().includes(searchValue)){
+            return;
+        }
+
+        const isTicked=ticked.includes(university);
+
+        grid.innerHTML+=`
         <div class="card ${isTicked ? "ticked" : ""}">
             <div class="tick" onclick="toggleTick('${university}')">
             ${isTicked ? "✅" : "⬜"}
@@ -333,6 +314,7 @@ function renderHub(){
             <button onclick="sendEmail('${email}','${university}')">Email Now</button>
         </div>`;
     });
+
     updateProgress();
 }
 </script>
